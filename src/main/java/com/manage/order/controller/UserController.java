@@ -3,6 +3,7 @@ package com.manage.order.controller;
 import com.manage.order.dto.UserDTO;
 import com.manage.order.entity.User;
 import com.manage.order.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +16,7 @@ public class UserController {
     private UserService userService;
 
     @PostMapping
-    public ResponseEntity<Integer> createUser(@RequestBody UserDTO userDTO) {
+    public ResponseEntity<Integer> createUser(@Valid @RequestBody UserDTO userDTO) {
         return ResponseEntity.status(201).body(userService.createUser(userDTO));
     }
 
