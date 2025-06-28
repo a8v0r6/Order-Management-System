@@ -11,6 +11,7 @@ import com.manage.order.exception.UserNotFoundException;
 import com.manage.order.repository.OrderRepository;
 import com.manage.order.repository.UserRepository;
 import jakarta.persistence.OptimisticLockException;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -36,6 +37,7 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private AsyncService asyncService;
 
+    @Transactional
     @Override
     public Integer createOrder(OrderDTO dto) {
         User user = userRepository.findById(dto.customerId()).orElseThrow(() -> new UserNotFoundException("No such user exists"));
@@ -49,20 +51,15 @@ public class OrderServiceImpl implements OrderService {
             item.setQuantity(itemDTO.quantity());
             order.addItem(item);
         });
-        Integer orderId = 0;
-        Order savedOrder = null;
-        try {
-            savedOrder = orderRepository.save(order);
-        } catch (OptimisticLockException e) {
-            log.error("OptimisticLock exception");
-        }
-        if (savedOrder != null) {
-            List<Item> itemList = savedOrder.getItemList().stream()
-                    .map(item -> new Item(item.getQuantity(), item.getPrice(), item.getItemName()))
-                    .toList();
-            orderId = savedOrder.getOrderId();
-            asyncService.calculateTotal(savedOrder);
-        }
+        Order savedOrder = orderRepository.save(order);
+
+
+        List<Item> itemList = savedOrder.getItemList().stream()
+                .map(item -> new Item(item.getQuantity(), item.getPrice(), item.getItemName()))
+                .toList();
+        Integer orderId = savedOrder.getOrderId();
+        asyncService.confirmOrder(savedOrder);
+
 
         log.info("save complete : {}", new Date());
         return orderId;
@@ -84,8 +81,7 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus("Deleted");
         try {
             orderRepository.save(order);
-        }
-        catch (OptimisticLockException e) {
+        } catch (OptimisticLockException e) {
             log.error("Could not delete Order");
         }
     }
@@ -93,7 +89,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public void updateOrderStatus(Integer orderId, String status) {
         Optional<Order> o = orderRepository.findById(orderId);
-        if (o.isEmpty()|| o.get().isDeleted()) {
+        if (o.isEmpty() || o.get().isDeleted()) {
             throw new OrderNotFoundException("Order not found");
         }
         int updated = orderRepository.updateOrderStatus(status, orderId, o.get().getVersion());

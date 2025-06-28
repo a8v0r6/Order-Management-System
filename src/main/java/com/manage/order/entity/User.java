@@ -17,7 +17,7 @@ public class User {
     @NonNull
     private String name;
     @NonNull
-
+    @Column(unique = true)
     private String email;
     private String address;
     private boolean isDeleted = false;
