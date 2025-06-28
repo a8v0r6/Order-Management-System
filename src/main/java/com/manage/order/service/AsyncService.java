@@ -20,20 +20,22 @@ public class AsyncService {
 
     @Async
     public void calculateTotal(Order order) {
-        System.out.println("calculating");
+        System.out.println("calculating total");
         Double total = order.getItemList().parallelStream().mapToDouble(item -> item.getPrice() * item.getQuantity()).sum();
         order.setTotalValue(total);
         order.setStatus("Confirmed");
+        Order savedOrder = new Order();
         try{
-            orderRepository.save(order);
+            savedOrder = orderRepository.save(order);
             Thread.sleep(10000);
         }
         catch (OptimisticLockException e) {
-            log.error("Exception while confirming");
+            log.error("Exception while confirming {}", order.getOrderId());
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
 
         log.info("total is: {}", total);
+        log.info("Sending for delivery {}", savedOrder.getOrderId());
     }
 }

@@ -6,6 +6,7 @@ import com.manage.order.dto.OrderResponseDTO;
 import com.manage.order.entity.Item;
 import com.manage.order.entity.Order;
 import com.manage.order.entity.User;
+import com.manage.order.exception.OrderNotFoundException;
 import com.manage.order.exception.UserNotFoundException;
 import com.manage.order.repository.OrderRepository;
 import com.manage.order.repository.UserRepository;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -70,25 +72,34 @@ public class OrderServiceImpl implements OrderService {
     public Page<OrderResponseDTO> getOrdersByCustomerId(Integer customerId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("orderDate").descending());
 
-        Page<Order> orderPage = orderRepository.findByUserCustomerId(customerId, pageable);
+        Page<Order> orderPage = orderRepository.findByUserCustomerIdAndIsDeletedFalse(customerId, pageable);
 
         return orderPage.map(this::mapToDTO);
     }
 
     @Override
     public void deleteOrder(Integer orderId) {
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException("Order not found"));
         order.setDeleted(true);
         order.setStatus("Deleted");
-        orderRepository.save(order);
+        try {
+            orderRepository.save(order);
+        }
+        catch (OptimisticLockException e) {
+            log.error("Could not delete Order");
+        }
     }
 
     @Override
     public void updateOrderStatus(Integer orderId, String status) {
-        Order o = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
-        o.setStatus(status);
-        orderRepository.updateOrderStatus(status, orderId);
-
+        Optional<Order> o = orderRepository.findById(orderId);
+        if (o.isEmpty()|| o.get().isDeleted()) {
+            throw new OrderNotFoundException("Order not found");
+        }
+        int updated = orderRepository.updateOrderStatus(status, orderId, o.get().getVersion());
+        if (updated == 0) {
+            throw new OptimisticLockException("Order was modified");
+        }
     }
 
     private OrderResponseDTO mapToDTO(Order order) {

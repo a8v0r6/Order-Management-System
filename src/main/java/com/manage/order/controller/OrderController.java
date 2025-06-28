@@ -40,7 +40,7 @@ public class OrderController {
     @PutMapping("/{orderId}")
     public ResponseEntity<Void> updateOrderStatus(@PathVariable Integer orderId, @RequestParam String status) {
         orderService.updateOrderStatus(orderId, status);
-        return ResponseEntity.status(201).build();
+        return ResponseEntity.ok().build();
     }
 
 }
