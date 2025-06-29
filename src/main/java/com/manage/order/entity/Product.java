@@ -1,7 +1,10 @@
 package com.manage.order.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
 import lombok.Data;
+
+import java.math.BigDecimal;
 
 @Data
 @Entity
@@ -13,8 +16,9 @@ public class Product {
 
     @Column(unique = true)
     private String name;
-
-    private Double price;
+    @DecimalMin(value = "0.01")
+    @Column(name = "price", scale = 2)
+    private BigDecimal price;
 
     private Integer availableQuantity;
 

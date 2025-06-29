@@ -56,10 +56,10 @@ public class GlobalExceptionHandler {
         problemDetail.setProperty("description", "Items are not available");
         return problemDetail;
     }
-    
+
     @ExceptionHandler(IncorrectOrderException.class)
     public ProblemDetail handleIncorrectOrderException(IncorrectOrderException ie) {
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(404), ie.getMessage());
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(400), ie.getMessage());
         problemDetail.setProperty("description", "Item price incorrect");
         return problemDetail;
     }

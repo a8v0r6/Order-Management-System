@@ -11,6 +11,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
+
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Integer> {
     @EntityGraph(attributePaths = {"itemList", "user"})
@@ -21,4 +23,8 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     @Query(value = "UPDATE orders SET status = :status, version = version + 1 where order_id =:orderId and version = :version", nativeQuery = true)
     public int updateOrderStatus(@Param("status") String status, @Param("orderId") Integer orderId, @Param("version") Integer version);
 
+    @Transactional
+    @Modifying
+    @Query(value = "UPDATE orders SET status = 'Confirmed', total_value = :total where order_id =:orderId ", nativeQuery = true)
+    public void setTotalAndConfirmStatus(@Param("total") BigDecimal total,@Param("orderId") Integer orderId);
 }

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -20,7 +21,7 @@ public class Order {
     @JoinColumn(name = "customerId")
     private User user;
     private String status = "Pending";
-    private Double totalValue;
+    private BigDecimal totalValue;
     @CreationTimestamp
     private Date orderDate;
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)

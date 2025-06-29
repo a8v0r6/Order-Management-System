@@ -22,7 +22,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -59,7 +58,7 @@ public class OrderServiceImpl implements OrderService {
                 throw new OutOfStockException("One or more Products are unavailable");
             }
             p.setAvailableQuantity(p.getAvailableQuantity() - item.getQuantity());
-            if (p.getPrice() != item.getPrice()) {
+            if (itemDTO.price().compareTo(p.getPrice()) != 0) {
                 log.error("Item price incorrect");
                 throw new IncorrectOrderException("Incorrect order details");
             }
@@ -67,13 +66,8 @@ public class OrderServiceImpl implements OrderService {
         });
         Order savedOrder = orderRepository.save(order);
 
-
-        List<Item> itemList = savedOrder.getItemList().stream()
-                .map(item -> new Item(item.getQuantity(), item.getPrice(), item.getItemName()))
-                .toList();
         Integer orderId = savedOrder.getOrderId();
         asyncService.confirmOrder(savedOrder);
-
 
         log.info("save complete : {}", new Date());
         return orderId;
