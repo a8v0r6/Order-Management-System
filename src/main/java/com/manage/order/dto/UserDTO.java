@@ -1,4 +1,7 @@
 package com.manage.order.dto;
 
-public record UserDTO(String name, String email, String address) {
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
+public record UserDTO(@NotBlank(message = "Name is mandatory") String name, @Email(message = "Enter Valid email") String email, String address) {
 }

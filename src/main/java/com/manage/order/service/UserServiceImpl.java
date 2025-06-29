@@ -7,6 +7,8 @@ import com.manage.order.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -39,7 +41,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUserById(Integer id) {
-        return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("No such user"));
+        Optional<User> user = userRepository.findById(id);
+        if (user.isEmpty() || user.get().isDeleted()) {
+            throw new UserNotFoundException("No such user");
+        }
+        return user.get();
     }
 
     @Override

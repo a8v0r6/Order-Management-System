@@ -1,6 +1,7 @@
 package com.manage.order.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import lombok.Data;
 import lombok.NonNull;
 
