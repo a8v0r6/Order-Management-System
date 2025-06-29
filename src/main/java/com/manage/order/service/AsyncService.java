@@ -27,7 +27,7 @@ public class AsyncService {
                         .multiply(BigDecimal.valueOf(item.getQuantity()).setScale(2, RoundingMode.HALF_UP)))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         order.setTotalValue(total);
-        orderRepository.setTotalAndConfirmStatus(total, order.getOrderId());
+        order.setStatus("Confirmed");
         log.info("total is: {}", total);
         log.info("Sending for delivery {}", order.getOrderId());
     }
