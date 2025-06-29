@@ -3,6 +3,7 @@ package com.manage.order.service;
 import com.manage.order.entity.Item;
 import com.manage.order.entity.Order;
 import com.manage.order.entity.Product;
+import com.manage.order.exception.IncorrectOrderException;
 import com.manage.order.exception.OutOfStockException;
 import com.manage.order.exception.ProductNotFoundException;
 import com.manage.order.repository.OrderRepository;
@@ -13,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -31,7 +34,12 @@ public class AsyncService {
         for (Item item : order.getItemList()) {
             Product p = productRepository.findByName(item.getItemName()).orElseThrow(()-> new ProductNotFoundException("Product not found"));
             if (p.getAvailableQuantity() < item.getQuantity()) {
+                log.error("Order {} could not be placed", order.getOrderId());
                 throw new OutOfStockException("One or more Products are unavailable");
+            }
+            if (!p.getPrice().equals(item.getPrice())) {
+                log.error("Item price incorrect");
+                throw new IncorrectOrderException("Incorrect order details");
             }
             p.setAvailableQuantity(p.getAvailableQuantity() - item.getQuantity());
         }
