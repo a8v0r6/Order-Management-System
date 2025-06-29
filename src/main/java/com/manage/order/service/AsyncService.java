@@ -37,7 +37,7 @@ public class AsyncService {
                 log.error("Order {} could not be placed", order.getOrderId());
                 throw new OutOfStockException("One or more Products are unavailable");
             }
-            if (!p.getPrice().equals(item.getPrice())) {
+            if (p.getPrice() != item.getPrice()) {
                 log.error("Item price incorrect");
                 throw new IncorrectOrderException("Incorrect order details");
             }
