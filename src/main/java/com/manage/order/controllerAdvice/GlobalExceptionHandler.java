@@ -1,6 +1,8 @@
 package com.manage.order.controllerAdvice;
 
+import com.manage.order.exception.IncorrectOrderException;
 import com.manage.order.exception.OrderNotFoundException;
+import com.manage.order.exception.OutOfStockException;
 import com.manage.order.exception.UserNotFoundException;
 import jakarta.persistence.OptimisticLockException;
 import org.springframework.http.HttpStatusCode;
@@ -45,6 +47,20 @@ public class GlobalExceptionHandler {
                 errors.add(err.getDefaultMessage())
         );
         problemDetail.setProperty("description", errors);
+        return problemDetail;
+    }
+
+    @ExceptionHandler(OutOfStockException.class)
+    public ProblemDetail handleOrderOutOfStockException(OutOfStockException oe) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(410), oe.getMessage());
+        problemDetail.setProperty("description", "Items are not available");
+        return problemDetail;
+    }
+    
+    @ExceptionHandler(IncorrectOrderException.class)
+    public ProblemDetail handleIncorrectOrderException(IncorrectOrderException ie) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(404), ie.getMessage());
+        problemDetail.setProperty("description", "Item price incorrect");
         return problemDetail;
     }
 

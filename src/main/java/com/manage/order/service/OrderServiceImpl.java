@@ -5,10 +5,11 @@ import com.manage.order.dto.OrderItemDTO;
 import com.manage.order.dto.OrderResponseDTO;
 import com.manage.order.entity.Item;
 import com.manage.order.entity.Order;
+import com.manage.order.entity.Product;
 import com.manage.order.entity.User;
-import com.manage.order.exception.OrderNotFoundException;
-import com.manage.order.exception.UserNotFoundException;
+import com.manage.order.exception.*;
 import com.manage.order.repository.OrderRepository;
+import com.manage.order.repository.ProductRepository;
 import com.manage.order.repository.UserRepository;
 import jakarta.persistence.OptimisticLockException;
 import jakarta.transaction.Transactional;
@@ -37,6 +38,9 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private AsyncService asyncService;
 
+    @Autowired
+    private ProductRepository productRepository;
+
     @Transactional
     @Override
     public Integer createOrder(OrderDTO dto) {
@@ -49,6 +53,16 @@ public class OrderServiceImpl implements OrderService {
             item.setItemName(itemDTO.itemName());
             item.setPrice(itemDTO.price());
             item.setQuantity(itemDTO.quantity());
+            Product p = productRepository.findByName(item.getItemName()).orElseThrow(()-> new ProductNotFoundException("Product not found"));
+            if (p.getAvailableQuantity() < item.getQuantity()) {
+                log.error("Order {} could not be placed", order.getOrderId());
+                throw new OutOfStockException("One or more Products are unavailable");
+            }
+            p.setAvailableQuantity(p.getAvailableQuantity() - item.getQuantity());
+            if (p.getPrice() != item.getPrice()) {
+                log.error("Item price incorrect");
+                throw new IncorrectOrderException("Incorrect order details");
+            }
             order.addItem(item);
         });
         Order savedOrder = orderRepository.save(order);
