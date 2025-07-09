@@ -1,6 +1,7 @@
 package com.manage.order.controller;
 
 import com.manage.order.dto.OrderDTO;
+import com.manage.order.dto.OrderListResponse;
 import com.manage.order.dto.OrderResponseDTO;
 import com.manage.order.service.OrderService;
 import jakarta.validation.Valid;
@@ -8,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @RestController
@@ -29,10 +32,15 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getOrdersByCustomerId(custId, page, size));
     }
 
+    @GetMapping("/getAllorders")
+    public ResponseEntity<List<OrderListResponse>> getAllOrders(@RequestBody List<Integer> custIdList) {
+        return ResponseEntity.ok(orderService.getAllOrders(custIdList));
+    }
+
     @DeleteMapping("/{orderId}")
     public ResponseEntity<Void> deleteOrder(@PathVariable Integer orderId) {
         orderService.deleteOrder(orderId);
-        return ResponseEntity.status(204).build();
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{orderId}")

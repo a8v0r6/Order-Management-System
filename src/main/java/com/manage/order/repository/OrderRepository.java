@@ -11,7 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
+import java.util.List;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Integer> {
@@ -22,4 +22,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     @Modifying
     @Query(value = "UPDATE orders SET status = :status, version = version + 1 where order_id =:orderId and version = :version", nativeQuery = true)
     public int updateOrderStatus(@Param("status") String status, @Param("orderId") Integer orderId, @Param("version") Integer version);
+
+    @Query("SELECT o from Order o where o.user.customerId in :list")
+    List<Order> getAllOrders(@Param("list") List<Integer> custIdList);
 }

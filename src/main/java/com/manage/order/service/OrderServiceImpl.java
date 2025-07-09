@@ -1,8 +1,6 @@
 package com.manage.order.service;
 
-import com.manage.order.dto.OrderDTO;
-import com.manage.order.dto.OrderItemDTO;
-import com.manage.order.dto.OrderResponseDTO;
+import com.manage.order.dto.*;
 import com.manage.order.entity.Item;
 import com.manage.order.entity.Order;
 import com.manage.order.entity.Product;
@@ -21,8 +19,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -104,6 +102,21 @@ public class OrderServiceImpl implements OrderService {
         if (updated == 0) {
             throw new OptimisticLockException("Order was modified");
         }
+    }
+
+    @Override
+    public List<OrderListResponse> getAllOrders(List<Integer> custIdList) {
+        custIdList.forEach(System.out::println);
+        List<Order> list = orderRepository.getAllOrders(custIdList);
+        Map<Integer, List<Order>> collect = list.stream().collect(Collectors.groupingBy(o -> (o.getUser().getCustomerId())));
+        List<OrderListResponse> res = new ArrayList<>();
+        collect.forEach((k, v) -> {
+            List<OrderSummaryDTO> orders = v.stream()
+                    .map(o -> new OrderSummaryDTO(o.getOrderId(), o.getOrderDate(), o.getTotalValue(), o.getStatus()))
+                    .toList();
+            res.add(new OrderListResponse(k, orders));
+        });
+        return res;
     }
 
     private OrderResponseDTO mapToDTO(Order order) {
